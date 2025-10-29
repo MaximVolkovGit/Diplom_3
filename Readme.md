@@ -44,12 +44,12 @@ pytest tests -v
 pytest tests --browser=firefox -v   
 
 ### Запуск с отчётами в Chrome:
-pytest --browser=chrome --alluredir=allure-results-chrome
-allure serve allure-results-chrome
+- pytest --browser=chrome --alluredir=allure-results-chrome
+- allure serve allure-results-chrome
 
 ### Запуск с отчётами в Firefox:
-pytest --browser=firefox --alluredir=allure-results-firefox
-allure serve allure-results-firefox
+- pytest --browser=firefox --alluredir=allure-results-firefox
+- allure serve allure-results-firefox
 
 ### Создать общий отчет из обоих запусков
 allure serve allure-results-chrome allure-results-firefox
