@@ -52,8 +52,7 @@ class LoginPage(BasePage):
             
             # Пробуем закрыть через оверлей
             if self.is_element_visible(MainPageLocators.modal_overlay, timeout=1):
-                overlay = self.driver.find_element(*MainPageLocators.modal_overlay)
-                overlay.click()
+                self.click_button(MainPageLocators.modal_overlay)
                 
         except:
             pass

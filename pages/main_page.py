@@ -2,6 +2,8 @@ from pages.base_page import BasePage
 from locators.locators import MainPageLocators
 from data.urls import MainUrl
 import allure
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
 class MainPage(BasePage):
 
@@ -39,8 +41,7 @@ class MainPage(BasePage):
     def close_modal_by_overlay(self):
         try:
             if self.is_element_visible(MainPageLocators.modal_overlay, timeout=2):
-                overlay = self.driver.find_element(*MainPageLocators.modal_overlay)
-                overlay.click()
+                self.click_button(MainPageLocators.modal_overlay)
         except:
             # Если не получается, используем принудительное закрытие
             self.force_close_modals()
@@ -67,18 +68,10 @@ class MainPage(BasePage):
     @allure.step('Получить значение счетчика ингредиента')
     def get_ingredient_counter(self):
         try:
-            # Ищем счетчик относительно ингредиента
-            ingredient = self.driver.find_element(*MainPageLocators.fluorescent_bun)
+            counter_element = self.find_element(MainPageLocators.ingredient_counter)
             
-            # Ищем родительский элемент ингредиента и в нем счетчик
-            from selenium.webdriver.common.by import By
-            parent = ingredient.find_element(By.XPATH, "./..")
-            
-            # Ищем счетчик внутри родительского элемента
-            counter_elements = parent.find_elements(By.XPATH, ".//p[contains(@class, 'counter_counter__num__3nue1')]")
-            
-            if counter_elements and counter_elements[0].is_displayed():
-                counter_text = counter_elements[0].text
+            if counter_element.is_displayed():
+                counter_text = counter_element.text
                 return int(counter_text) if counter_text else 0
                 
             return 0
@@ -100,3 +93,78 @@ class MainPage(BasePage):
                 
         except:
             self.force_close_modals()
+
+    @allure.step('Создать заказ через UI')
+    def create_order_ui(self):
+        # Перетаскиваем ингредиент в конструктор
+        self.drag_ingredient_to_constructor()
+        
+        # Нажимаем кнопку оформления заказа
+        self.click_order_button()
+        
+        # Ждем появления модального окна с номером заказа
+        order_number = self.get_order_number_from_modal()
+        
+        # Закрываем модальное окно заказа
+        self.close_order_modal()
+        
+        return order_number
+
+    @allure.step('Нажать кнопку оформления заказа')
+    def click_order_button(self):
+        self.click_button(MainPageLocators.order_button)
+
+    @allure.step('Получить номер заказа из модального окна')
+    def get_order_number_from_modal(self):
+        try:
+            # Ждем появления модального окна с номером заказа
+            order_number_element = self.wait_element_visible(MainPageLocators.order_modal, timeout=10)
+            return order_number_element.text
+        except:
+            return None
+
+    @allure.step('Закрыть модальное окно заказа')
+    def close_order_modal(self):
+        try:
+            self.click_button(MainPageLocators.close_order_modal)
+        except:
+            # Если не получается закрыть крестиком, закрываем через оверлей
+            self.close_modal_by_overlay()
+
+    @allure.step('Проверить, что кнопка оформления заказа доступна')
+    def is_order_button_visible(self):
+        return self.is_element_visible(MainPageLocators.order_button)
+    
+    @allure.step('Получить финальный номер заказа из модального окна')
+    def get_final_order_number(self, timeout=15):
+        try:
+            # Сначала ждем, пока исчезнет временный номер 9999
+            WebDriverWait(self.driver, timeout).until(
+                EC.invisibility_of_element_located(MainPageLocators.order_number_loading)
+            )
+            
+            # Затем получаем финальный номер заказа
+            order_number_element = self.wait_element_visible(MainPageLocators.order_number_final, timeout=5)
+            return order_number_element.text
+        except Exception as e:
+            # Если не удалось получить финальный номер, возвращаем None
+            #print(f"Не удалось получить финальный номер заказа: {e}")
+            return None
+
+    @allure.step('Создать заказ через UI и получить финальный номер')
+    def create_order_ui(self):
+        """Создать заказ через пользовательский интерфейс и вернуть финальный номер"""
+        # Перетаскиваем ингредиент в конструктор
+        self.drag_ingredient_to_constructor()
+        
+        # Нажимаем кнопку оформления заказа
+        self.click_order_button()
+        
+        # Ждем появления модального окна с номером заказа
+        # Сначала может появиться 9999, поэтому ждем обновления
+        order_number = self.get_final_order_number()
+        
+        # Закрываем модальное окно заказа
+        self.close_order_modal()
+        
+        return order_number

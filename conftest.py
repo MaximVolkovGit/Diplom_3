@@ -3,8 +3,10 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from data.user_data import Person
-from data.urls import MainUrl, Endpoints
+from data.urls import MainUrl, Endpoints, URLS
 
 def pytest_addoption(parser):
     """Опции для выбора браузера"""
@@ -73,22 +75,19 @@ def login_user(driver, create_new_user):
     login_page = LoginPage(driver)
     login_page.open()
     
-    # Добавляем дополнительную проверку и ожидание
+    WebDriverWait(driver, 10).until(
+        EC.url_contains(URLS.url_login)
+    )
+    
     assert login_page.is_auth_form_visible(), "Форма авторизации не загрузилась"
     
     login_page.login(user_data["email"], user_data["password"])
     
-    # Проверяем, что логин прошел успешно (перешли на главную страницу)
-    import time
-    time.sleep(0.5)  # Даем время для редиректа
+    WebDriverWait(driver, 10).until(
+        EC.url_to_be(MainUrl.MAIN_URL)
+    )
     
     current_url = driver.current_url
     assert current_url == MainUrl.MAIN_URL, f"Логин не прошел успешно. Текущий URL: {current_url}"
     
     return user_data
-
-@pytest.fixture
-def order_feed_page(driver):
-    """Фикстура для страницы ленты заказов"""
-    from pages.order_feed_page import OrderFeedPage
-    return OrderFeedPage(driver)

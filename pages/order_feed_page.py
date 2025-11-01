@@ -14,7 +14,7 @@ class OrderFeedPage(BasePage):
     @allure.step('Получить значение счетчика "Выполнено за все время"')
     def get_total_orders_count(self):
         try:
-            counter = self.driver.find_element(*OrderFeedLocators.total_orders_counter)
+            counter = self.find_element(OrderFeedLocators.total_orders_counter)
             return int(counter.text) if counter.text else 0
         except:
             return 0
@@ -22,7 +22,7 @@ class OrderFeedPage(BasePage):
     @allure.step('Получить значение счетчика "Выполнено за сегодня"')
     def get_today_orders_count(self):
         try:
-            counter = self.driver.find_element(*OrderFeedLocators.dayly_orders_counter)
+            counter = self.find_element(OrderFeedLocators.dayly_orders_counter)
             return int(counter.text) if counter.text else 0
         except:
             return 0
@@ -30,7 +30,7 @@ class OrderFeedPage(BasePage):
     @allure.step('Получить список номеров заказов в разделе "В работе"')
     def get_orders_in_progress(self):
         try:
-            orders_elements = self.driver.find_elements(*OrderFeedLocators.number_order_in_job)
+            orders_elements = self.find_elements(OrderFeedLocators.number_order_in_job)
             return [order.text for order in orders_elements if order.text]
         except:
             return []
@@ -38,7 +38,7 @@ class OrderFeedPage(BasePage):
     @allure.step('Получить нормализованный список номеров заказов в разделе "В работе"')
     def get_orders_in_progress_normalized(self):
         try:
-            orders_elements = self.driver.find_elements(*OrderFeedLocators.number_order_in_job)
+            orders_elements = self.find_elements(OrderFeedLocators.number_order_in_job)
             normalized_orders = []
             for order in orders_elements:
                 if order.text:
